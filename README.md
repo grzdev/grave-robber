@@ -7,7 +7,7 @@ Built for the **Tari October Build Contest: Spooky Secrets** and the **Sapient C
 ---
 
 <p align="center">
-  <img src="./public/gameplay-loop.svg" alt="Grave Robber 2D Gameplay Loop" width="100%" />
+  <img src="./public/gameplay.gif" alt="Grave Robber 2D Gameplay Loop" width="100%" />
 </p>
 
 ---
