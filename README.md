@@ -6,6 +6,12 @@ Built for the **Tari October Build Contest: Spooky Secrets** and the **Sapient C
 
 ---
 
+<p align="center">
+  <img src="./public/gameplay-loop.svg" alt="Grave Robber 2D Gameplay Loop" width="100%" />
+</p>
+
+---
+
 ## 🎃 What is Grave Robber?
 
 On transparent blockchains (like Ethereum or Solana), putting a puzzle or bounty with an on-chain solution is fatally flawed:
@@ -70,7 +76,7 @@ On transparent blockchains (like Ethereum or Solana), putting a puzzle or bounty
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/grave-robber.git
+git clone https://github.com/grzdev/grave-robber.git
 cd grave-robber
 
 # Install dependencies
