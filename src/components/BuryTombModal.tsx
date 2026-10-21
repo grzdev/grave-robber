@@ -92,17 +92,17 @@ export const BuryTombModal: React.FC<BuryTombModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-stone-900 border-2 border-fuchsia-800/80 rounded-2xl shadow-[0_0_50px_rgba(232,121,249,0.25)] overflow-hidden text-stone-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[88vh] bg-stone-900 border-2 border-fuchsia-800/80 rounded-3xl shadow-[0_0_50px_rgba(232,121,249,0.25)] overflow-hidden text-stone-200 flex flex-col">
         {/* Header */}
-        <div className="bg-stone-950/80 border-b border-fuchsia-900/40 p-4 flex justify-between items-center">
+        <div className="bg-stone-950/90 border-b border-fuchsia-900/40 px-4 py-3 sm:px-5 sm:py-3.5 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-2xl">⚰️</span>
             <div>
-              <h3 className="font-cinzel text-lg font-bold text-fuchsia-200">
+              <h3 className="font-cinzel text-base sm:text-lg font-bold text-fuchsia-200">
                 Dig & Inscribe a Secret Tomb
               </h3>
-              <p className="text-xs text-stone-400 font-mono">
+              <p className="text-[11px] text-stone-400 font-mono">
                 Lock Tari XTR with a confidential hash riddle
               </p>
             </div>
@@ -116,7 +116,7 @@ export const BuryTombModal: React.FC<BuryTombModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 overflow-y-auto">
           {error && (
             <div className="p-3 bg-red-950/60 border border-red-800/80 rounded-xl text-xs text-red-200 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />

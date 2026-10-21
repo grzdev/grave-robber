@@ -108,6 +108,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
   });
 
   const cameraXRef = useRef(0);
+  const cameraYRef = useRef(0);
 
   // Keyboard events
   useEffect(() => {
@@ -228,19 +229,28 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         }
       }
 
-      // Camera follow
-      const canvasW = canvas.width;
-      const targetCamX = p.x - canvasW / 2 + p.w / 2;
+      // Camera follow with 1.25x zoom for immersive close-up framing
+      const ZOOM = 1.25;
+      const viewW = canvas.width / ZOOM;
+      const viewH = canvas.height / ZOOM;
+
+      const targetCamX = p.x - viewW / 2 + p.w / 2;
       const minCamX = 0;
-      const maxCamX = Math.max(0, worldWidth - canvasW);
+      const maxCamX = Math.max(0, worldWidth - viewW);
       cameraXRef.current += (Math.max(minCamX, Math.min(maxCamX, targetCamX)) - cameraXRef.current) * 0.1;
       const camX = cameraXRef.current;
+
+      const maxCamY = Math.max(0, worldHeight - viewH);
+      const targetCamY = Math.max(0, Math.min(maxCamY, (p.y + p.h / 2) - viewH * 0.58));
+      cameraYRef.current += (targetCamY - cameraYRef.current) * 0.1;
+      const camY = cameraYRef.current;
 
       // ---------------- RENDER ----------------
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
-      ctx.translate(-camX, 0);
+      ctx.scale(ZOOM, ZOOM);
+      ctx.translate(-camX, -camY);
 
       // Gothic stone wall background
       ctx.fillStyle = '#080510';
@@ -397,43 +407,44 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
       tempCanvas.height = canvas.height;
       const tCtx = tempCanvas.getContext('2d');
       if (tCtx) {
+        tCtx.save();
+        tCtx.scale(ZOOM, ZOOM);
+        tCtx.translate(-camX, -camY);
+
         // Deep ambient darkness
         tCtx.fillStyle = 'rgba(5, 3, 9, 0.88)';
-        tCtx.fillRect(0, 0, canvas.width, canvas.height);
+        tCtx.fillRect(camX, camY, viewW, viewH);
 
-        // Punch out light circles
+        // Punch out light circles in world coordinates
         tCtx.globalCompositeOperation = 'destination-out';
 
         // Player Lantern Light
-        const screenPx = p.x - camX + (p.facingRight ? p.w + 4 : -4);
-        const screenPy = p.y + 20;
-        const lanternRadius = 165 + Math.sin(frameCount * 0.08) * 8;
+        const playerLightX = p.x + (p.facingRight ? p.w + 4 : -4);
+        const playerLightY = p.y + 20;
+        const lanternRadius = 150 + Math.sin(frameCount * 0.08) * 8;
 
-        const radGrad = tCtx.createRadialGradient(screenPx, screenPy, 15, screenPx, screenPy, lanternRadius);
+        const radGrad = tCtx.createRadialGradient(playerLightX, playerLightY, 15, playerLightX, playerLightY, lanternRadius);
         radGrad.addColorStop(0, 'rgba(0,0,0,1)');
         radGrad.addColorStop(0.55, 'rgba(0,0,0,0.7)');
         radGrad.addColorStop(1, 'rgba(0,0,0,0)');
         tCtx.fillStyle = radGrad;
         tCtx.beginPath();
-        tCtx.arc(screenPx, screenPy, lanternRadius, 0, Math.PI * 2);
+        tCtx.arc(playerLightX, playerLightY, lanternRadius, 0, Math.PI * 2);
         tCtx.fill();
 
         // Wall Torch light holes
         torches.forEach((torch, i) => {
-          const sTx = torch.x - camX;
-          const sTy = torch.y - 4;
-          if (sTx > -60 && sTx < canvas.width + 60) {
-            const torchRadius = 80 + Math.sin(frameCount * 0.12 + i) * 5;
-            const tGrad = tCtx.createRadialGradient(sTx, sTy, 4, sTx, sTy, torchRadius);
-            tGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
-            tGrad.addColorStop(1, 'rgba(0,0,0,0)');
-            tCtx.fillStyle = tGrad;
-            tCtx.beginPath();
-            tCtx.arc(sTx, sTy, torchRadius, 0, Math.PI * 2);
-            tCtx.fill();
-          }
+          const torchRadius = 75 + Math.sin(frameCount * 0.12 + i) * 5;
+          const tGrad = tCtx.createRadialGradient(torch.x, torch.y - 4, 4, torch.x, torch.y - 4, torchRadius);
+          tGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
+          tGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          tCtx.fillStyle = tGrad;
+          tCtx.beginPath();
+          tCtx.arc(torch.x, torch.y - 4, torchRadius, 0, Math.PI * 2);
+          tCtx.fill();
         });
 
+        tCtx.restore();
         ctx.drawImage(tempCanvas, 0, 0);
       }
 
