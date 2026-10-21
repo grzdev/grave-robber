@@ -146,48 +146,82 @@ export function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-3 md:px-6 md:py-4 space-y-4">
         {/* Atmospheric Hero Bar */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-950/70 via-stone-950 to-stone-900 border border-purple-800/40 p-6 md:p-8 shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-900/60 border border-purple-700/60 text-purple-300 text-xs font-mono font-medium">
-                <Ghost className="w-3.5 h-3.5 text-purple-400" />
+        <div
+          className={`relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950/70 via-stone-950 to-stone-900 border border-purple-800/40 shadow-xl ${
+            viewMode === 'game' ? 'p-3 md:p-4' : 'p-6 md:p-8'
+          }`}
+        >
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div className="space-y-1 max-w-xl">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-900/60 border border-purple-700/60 text-purple-300 text-[10px] font-mono font-medium">
+                <Ghost className="w-3 h-3 text-purple-400" />
                 <span>October Build Challenge &bull; Spooky Secrets</span>
               </div>
-              <h2 className="font-cinzel text-2xl md:text-3xl font-black text-white tracking-wide">
+              <h2
+                className={`font-cinzel font-black text-white tracking-wide ${
+                  viewMode === 'game' ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl'
+                }`}
+              >
                 Loot the Cursed Crypts of Tari
               </h2>
-              <p className="text-xs md:text-sm text-stone-400 leading-relaxed font-mono">
-                Explore the catacombs, decipher ancient riddles, and plunder stealth XTR bounties.
-                Every solution is proven cryptographically client-side and delivered to your private
-                stealth address without mempool front-running.
-              </p>
+              {viewMode !== 'game' && (
+                <p className="text-xs md:text-sm text-stone-400 leading-relaxed font-mono">
+                  Explore the catacombs, decipher ancient riddles, and plunder stealth XTR bounties.
+                  Every solution is proven cryptographically client-side and delivered to your private
+                  stealth address without mempool front-running.
+                </p>
+              )}
             </div>
 
             {/* Quick Stats Cards */}
-            <div className="flex gap-3 font-mono">
-              <div className="p-3.5 bg-stone-900/90 border border-purple-900/50 rounded-2xl text-center min-w-[100px]">
-                <span className="text-[10px] text-stone-400 uppercase tracking-widest block">
+            <div className="flex gap-2 font-mono">
+              <div
+                className={`bg-stone-900/90 border border-purple-900/50 rounded-xl text-center ${
+                  viewMode === 'game' ? 'px-3 py-1.5 min-w-[75px]' : 'p-3.5 min-w-[100px]'
+                }`}
+              >
+                <span className="text-[9px] text-stone-400 uppercase tracking-widest block">
                   Sealed
                 </span>
-                <span className="text-xl font-bold font-pixel text-purple-300">
+                <span
+                  className={`font-bold font-pixel text-purple-300 ${
+                    viewMode === 'game' ? 'text-base' : 'text-xl'
+                  }`}
+                >
                   {sealedCount}
                 </span>
               </div>
-              <div className="p-3.5 bg-stone-900/90 border border-emerald-900/50 rounded-2xl text-center min-w-[100px]">
-                <span className="text-[10px] text-stone-400 uppercase tracking-widest block">
-                  Unclaimed XTR
+              <div
+                className={`bg-stone-900/90 border border-emerald-900/50 rounded-xl text-center ${
+                  viewMode === 'game' ? 'px-3 py-1.5 min-w-[75px]' : 'p-3.5 min-w-[100px]'
+                }`}
+              >
+                <span className="text-[9px] text-stone-400 uppercase tracking-widest block">
+                  Unclaimed
                 </span>
-                <span className="text-xl font-bold font-pixel text-emerald-400">
+                <span
+                  className={`font-bold font-pixel text-emerald-400 ${
+                    viewMode === 'game' ? 'text-base' : 'text-xl'
+                  }`}
+                >
                   {totalBounty}
                 </span>
               </div>
-              <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-2xl text-center min-w-[100px]">
-                <span className="text-[10px] text-stone-400 uppercase tracking-widest block">
+              <div
+                className={`bg-stone-900/90 border border-stone-800 rounded-xl text-center ${
+                  viewMode === 'game' ? 'px-3 py-1.5 min-w-[75px]' : 'p-3.5 min-w-[100px]'
+                }`}
+              >
+                <span className="text-[9px] text-stone-400 uppercase tracking-widest block">
                   Plundered
                 </span>
-                <span className="text-xl font-bold font-pixel text-stone-300">
+                <span
+                  className={`font-bold font-pixel text-stone-300 ${
+                    viewMode === 'game' ? 'text-base' : 'text-xl'
+                  }`}
+                >
                   {plunderedCount}
                 </span>
               </div>

@@ -35,24 +35,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="border-b border-purple-950/80 bg-stone-950/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-      <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+    <header className="border-b border-purple-950/80 bg-stone-950/95 px-4 py-2 relative z-30">
+      <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2.5">
         {/* Brand & Theme */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-700/60 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-purple-950/80 border border-purple-700/60 flex items-center justify-center text-lg shadow-[0_0_12px_rgba(168,85,247,0.3)]">
             🪦
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-cinzel font-black text-xl text-purple-200 tracking-wider">
+              <h1 className="font-cinzel font-black text-lg text-purple-200 tracking-wider leading-none">
                 GRAVE ROBBER
               </h1>
-              <span className="hidden sm:inline px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 text-[10px] font-mono font-semibold">
+              <span className="hidden sm:inline px-1.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 text-[9px] font-mono font-semibold">
                 Spooky Secrets '26
               </span>
             </div>
-            <p className="text-[11px] font-mono text-stone-400">
-              The Zero-Knowledge Crypt Heist on <span className="text-emerald-400 font-bold">Tari Ootle</span>
+            <p className="text-[10px] font-mono text-stone-400 mt-0.5">
+              Zero-Knowledge Crypt Heist on <span className="text-emerald-400 font-bold">Tari Ootle</span>
             </p>
           </div>
         </div>

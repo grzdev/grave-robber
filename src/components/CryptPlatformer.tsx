@@ -486,7 +486,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
   return (
     <div className="relative rounded-3xl overflow-hidden border border-purple-900/50 shadow-[0_0_35px_rgba(147,51,234,0.18)] bg-stone-950">
       {/* Canvas container */}
-      <div className="w-full aspect-[2/1] max-h-[520px] bg-stone-950 flex justify-center items-center relative">
+      <div className="w-full aspect-[2/1] max-h-[min(480px,58vh)] bg-stone-950 flex justify-center items-center relative">
         <canvas
           ref={canvasRef}
           width={960}
