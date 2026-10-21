@@ -21,72 +21,39 @@ interface Platform {
  * Procedural stair generator for crypt tombs.
  * Generates randomized climbing stepping stones with varied heights and widths.
  */
-function generateProceduralPlatforms(seed: number): Platform[] {
-  const list: Platform[] = [
+function generateProceduralPlatforms(): Platform[] {
+  return [
     // Ground floor
     { x: 0, y: 400, w: 1900, h: 60 },
+
+    // Station 1: Leading to Tomb 1 (x: 280, y: 330) - Zero overlap
+    { x: 120, y: 375, w: 50, h: 14, isStair: true },
+    { x: 188, y: 350, w: 48, h: 14, isStair: true },
+    { x: 254, y: 330, w: 90, h: 16 }, // Tomb 1 Dais
+
+    // Station 2: Ascending to Tomb 2 (x: 650, y: 200) - Zero overlap
+    { x: 400, y: 355, w: 50, h: 14, isStair: true },
+    { x: 470, y: 305, w: 50, h: 14, isStair: true },
+    { x: 540, y: 255, w: 50, h: 14, isStair: true },
+    { x: 615, y: 200, w: 95, h: 16 }, // Tomb 2 Dais
+
+    // Station 3: Ascending to Arch-Lich Sanctum (Tomb 3 at x: 1040, y: 110) - Zero overlap
+    { x: 760, y: 345, w: 48, h: 14, isStair: true },
+    { x: 828, y: 285, w: 48, h: 14, isStair: true },
+    { x: 896, y: 225, w: 48, h: 14, isStair: true },
+    { x: 964, y: 165, w: 45, h: 14, isStair: true },
+    { x: 1030, y: 110, w: 100, h: 16 }, // Tomb 3 Dais
+
+    // Station 4: Descent and bridge to Tomb 4 (x: 1420, y: 330) - Zero overlap
+    { x: 1180, y: 195, w: 55, h: 14, isStair: true },
+    { x: 1260, y: 255, w: 55, h: 14, isStair: true },
+    { x: 1340, y: 305, w: 50, h: 14, isStair: true },
+    { x: 1410, y: 330, w: 95, h: 16 }, // Tomb 4 Dais
+
+    // Altar dais at far right (Bury Loot) - Zero overlap
+    { x: 1570, y: 370, w: 50, h: 14, isStair: true },
+    { x: 1645, y: 350, w: 130, h: 40 },
   ];
-
-  // Pseudo-random helper from seed
-  let s = seed;
-  const rnd = () => {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
-
-  let curX = 0;
-  let curY = 0;
-
-  // Station 1: Clean ascent leading to Tomb 1 (Tomb 1 is at x: 280, y: 330)
-  // Stepping stones strictly before the dais, no rogue step behind it
-  list.push({ x: 130, y: 375, w: 55, h: 14, isStair: true });
-  list.push({ x: 195, y: 350, w: 50, h: 14, isStair: true });
-  // Tomb 1 main dais (spans x: 255 to 350)
-  list.push({ x: 255, y: 330, w: 95, h: 16 });
-
-  // Station 2: Clear gap after Tomb 1, then climb to Tomb 2 (x: 650, y: 200)
-  const steps2Count = 3 + Math.floor(rnd() * 2); // 3 or 4 steps
-  curX = 420;
-  curY = 380;
-  for (let i = 0; i < steps2Count; i++) {
-    const w = 55 + Math.floor(rnd() * 20);
-    curX += 45 + Math.floor(rnd() * 12);
-    curY -= 38 + Math.floor(rnd() * 8);
-    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
-  }
-  // Tomb 2 main dais (spans x: 620 to 715)
-  list.push({ x: 620, y: 200, w: 95, h: 16 });
-
-  // Station 3: Leading to Tomb 3 (Arch-Lich Sanctum) (x: 1040, y: 110) - Highest climb
-  const steps3Count = 4 + Math.floor(rnd() * 2); // 4 or 5 steps
-  curX = 760;
-  curY = 380;
-  for (let i = 0; i < steps3Count; i++) {
-    const w = 55 + Math.floor(rnd() * 20);
-    curX += 50 + Math.floor(rnd() * 15);
-    curY -= 48 + Math.floor(rnd() * 8);
-    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
-  }
-  // Tomb 3 main dais
-  list.push({ x: 1010, y: 110, w: 100, h: 16 });
-
-  // Station 4: Descent and climb to Tomb 4 (x: 1420, y: 320)
-  curX = 1170;
-  curY = 220;
-  list.push({ x: curX, y: curY, w: 75, h: 14, isStair: true });
-  curX += 85;
-  curY += 50;
-  list.push({ x: curX, y: curY, w: 70, h: 14, isStair: true });
-  curX += 80;
-  curY += 45;
-  list.push({ x: curX, y: curY, w: 75, h: 14, isStair: true });
-  // Tomb 4 dais
-  list.push({ x: 1390, y: 320, w: 95, h: 16 });
-
-  // Altar platform at far right
-  list.push({ x: 1640, y: 350, w: 140, h: 40 });
-
-  return list;
 }
 
 export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
@@ -96,8 +63,8 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Procedural platforms
-  const platforms = useMemo(() => generateProceduralPlatforms(42), []);
+  // Procedural platforms (zero overlap guaranteed)
+  const platforms = useMemo(() => generateProceduralPlatforms(), []);
 
   // Target detection
   const [nearbyTomb, setNearbyTomb] = useState<Tomb | null>(null);
