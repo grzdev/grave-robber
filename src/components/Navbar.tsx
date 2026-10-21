@@ -11,7 +11,7 @@ interface NavbarProps {
   setIsSimulator: (sim: boolean) => void;
   userAddress: string;
   userBalance: number;
-  onConnectWallet: () => void;
+  onOpenWalletModal: () => void;
   onOpenPrivacyGuide: () => void;
   hasSapient: boolean;
 }
@@ -25,7 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setIsSimulator,
   userAddress,
   userBalance,
-  onConnectWallet,
+  onOpenWalletModal,
   onOpenPrivacyGuide,
   hasSapient,
 }) => {
@@ -118,7 +118,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Wallet Connect Button */}
           {userAddress ? (
-            <div className="px-3 py-1.5 bg-stone-900 border border-purple-700/60 rounded-xl flex items-center gap-2 text-xs font-mono">
+            <button
+              onClick={onOpenWalletModal}
+              className="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 border border-purple-700/60 rounded-xl flex items-center gap-2 text-xs font-mono cursor-pointer transition-colors"
+            >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-stone-300 font-bold">
                 {userBalance} <span className="text-emerald-400">XTR</span>
@@ -126,14 +129,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="text-stone-500 hidden md:inline">
                 {userAddress.slice(0, 8)}...{userAddress.slice(-4)}
               </span>
-            </div>
+            </button>
           ) : (
             <button
-              onClick={onConnectWallet}
+              onClick={onOpenWalletModal}
               className="px-3.5 py-2 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-pixel text-[10px] rounded-xl shadow-lg border border-purple-400/40 flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
             >
               <Wallet className="w-3.5 h-3.5 text-amber-300" />
-              Connect Sapient
+              Connect Wallet
             </button>
           )}
 

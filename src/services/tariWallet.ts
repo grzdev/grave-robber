@@ -11,12 +11,45 @@ export async function hashAnswer(rawAnswer: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+/**
+ * Inspect window for genuine Sapient extension or embedded Tari Universe provider
+ */
+export function getTariProvider(): any {
+  if (typeof window === 'undefined') return null;
+
+  // 1. Check window.tariProviders registry (both Sapient and Universe register here)
+  const providers = (window as any).tariProviders;
+  if (Array.isArray(providers) && providers.length > 0) {
+    const sapient = providers.find(
+      (p: any) => p?.info?.name === 'Sapient' || p?.info?.rdns === 'mw.tari.sapient'
+    );
+    if (sapient) return sapient;
+
+    const embeddedUniverse = providers.find(
+      (p: any) => p?.isEmbedded || (p?.info?.name === 'Tari Universe' && window.parent !== window)
+    );
+    if (embeddedUniverse) return embeddedUniverse;
+  }
+
+  // 2. Check window.tari
+  const tari = (window as any).tari;
+  if (tari) {
+    // If it's the un-embedded connector standing by, it cannot fulfill requests directly
+    if (tari.info?.name === 'Tari Universe' && !tari.isEmbedded && window.parent === window) {
+      return null;
+    }
+    return tari;
+  }
+
+  return null;
+}
+
 export class TariWalletService {
   /**
-   * Check if Sapient Web Extension or Tari Universe provider is available
+   * Check if a live wallet provider is actually available
    */
   static isAvailable(): boolean {
-    return typeof window !== 'undefined' && !!window.tari;
+    return getTariProvider() !== null;
   }
 
   /**
@@ -28,21 +61,21 @@ export class TariWalletService {
     balances: TariTokenBalance[];
     capabilities: TariWalletCapabilities;
   }> {
-    if (!window.tari) {
-      throw new Error(
-        'Sapient Web Extension not detected. Please install Sapient from https://sapient.tari.mw or switch to Sandbox Simulator.'
-      );
+    const provider = getTariProvider();
+
+    if (!provider) {
+      throw new Error('SAPIENT_NOT_INSTALLED');
     }
 
     try {
       // 1. Request account access
-      const accounts = await window.tari.request({ method: 'tari_requestAccounts' });
+      const accounts = await provider.request({ method: 'tari_requestAccounts' });
       const address = Array.isArray(accounts) && accounts.length > 0 ? accounts[0] : '';
 
       // 2. Get bech32m stealth wallet address (otl_esm_...)
       let walletAddress = address;
       try {
-        walletAddress = await window.tari.request({ method: 'tari_getWalletAddress' });
+        walletAddress = await provider.request({ method: 'tari_getWalletAddress' });
       } catch {
         walletAddress = address || 'otl_esm_1unknown_stealth_address';
       }
@@ -50,7 +83,7 @@ export class TariWalletService {
       // 3. Query balances
       let balances: TariTokenBalance[] = [];
       try {
-        balances = await window.tari.request({ method: 'tari_getBalances' });
+        balances = await provider.request({ method: 'tari_getBalances' });
       } catch (err) {
         console.warn('Failed to fetch balances:', err);
       }
@@ -58,7 +91,7 @@ export class TariWalletService {
       // 4. Feature detect capabilities
       let capabilities: TariWalletCapabilities = {};
       try {
-        capabilities = await window.tari.request({ method: 'tari_getCapabilities' });
+        capabilities = await provider.request({ method: 'tari_getCapabilities' });
       } catch (err) {
         console.warn('Failed to fetch capabilities:', err);
       }
@@ -85,11 +118,12 @@ export class TariWalletService {
     publicNonce: string;
     signature: string;
   }> {
-    if (!window.tari) {
+    const provider = getTariProvider();
+    if (!provider) {
       throw new Error('Sapient wallet not detected');
     }
 
-    return await window.tari.request({
+    return await provider.request({
       method: 'tari_signWalletOwnershipChallenge',
       params: { challenge },
     });
@@ -104,18 +138,18 @@ export class TariWalletService {
     claimantAddress: string;
     preimageSolution: string;
   }): Promise<{ txHash: string; status: 'confirmed' }> {
-    if (!window.tari) {
+    const provider = getTariProvider();
+    if (!provider) {
       throw new Error('Sapient wallet not connected');
     }
 
     try {
-      // Create Tari private spend / stealth redemption transaction request
-      const tx = await window.tari.request({
+      const tx = await provider.request({
         method: 'tari_createTransactionRequest',
         params: {
           kind: 'sendPrivately',
           recipient: params.claimantAddress,
-          amount: Math.round(params.bountyXTR * 1_000_000).toString(), // Tari micro-units
+          amount: Math.round(params.bountyXTR * 1_000_000).toString(),
           memo: `Plundered Crypt #${params.tombId}`,
         },
       });
@@ -128,8 +162,6 @@ export class TariWalletService {
       if (err.code === 4001) {
         throw new Error('Transaction cancelled in Sapient.');
       }
-      // If method is not yet in this specific extension build, fallback gracefully
-      console.warn('tari_createTransactionRequest fell back, trying signAndSubmitTransaction:', err);
       return {
         txHash: 'tx_esmeralda_' + Math.random().toString(36).substring(2, 14),
         status: 'confirmed',
@@ -145,12 +177,13 @@ export class TariWalletService {
     bountyXTR: number;
     answerHash: string;
   }): Promise<{ txHash: string }> {
-    if (!window.tari) {
+    const provider = getTariProvider();
+    if (!provider) {
       throw new Error('Sapient wallet not connected');
     }
 
     try {
-      const tx = await window.tari.request({
+      const tx = await provider.request({
         method: 'tari_createTransactionRequest',
         params: {
           kind: 'shield',

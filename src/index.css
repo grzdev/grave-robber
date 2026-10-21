@@ -9,19 +9,38 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #08060b;
+    background-color: #07050c;
     color: #e5e5e7;
     margin: 0;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, .font-cinzel {
     font-family: var(--font-cinzel);
+    letter-spacing: 0.02em;
   }
 
   .font-pixel {
     font-family: var(--font-pixel);
+    letter-spacing: -0.02em;
+    -webkit-font-smoothing: none;
   }
+}
+
+/* Subtle, polished glow utilities */
+.glow-subtle-purple {
+  box-shadow: 0 0 24px -4px rgba(168, 85, 247, 0.16);
+}
+
+.glow-subtle-emerald {
+  box-shadow: 0 0 24px -4px rgba(52, 211, 153, 0.16);
+}
+
+.glow-subtle-gold {
+  box-shadow: 0 0 24px -4px rgba(251, 191, 36, 0.18);
 }
 
 /* Custom scrollbar for dark crypt theme */

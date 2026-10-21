@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { Tomb } from '../types/tari';
 import { sounds } from '../services/soundEffects';
-import { Sparkles, Key, Compass } from 'lucide-react';
+import { Key, Sparkles, Compass, Shuffle } from 'lucide-react';
 
 interface CryptPlatformerProps {
   tombs: Tomb[];
@@ -14,6 +14,82 @@ interface Platform {
   y: number;
   w: number;
   h: number;
+  isStair?: boolean;
+}
+
+/**
+ * Procedural stair generator for crypt tombs.
+ * Generates randomized climbing stepping stones with varied heights and widths.
+ */
+function generateProceduralPlatforms(seed: number): Platform[] {
+  const list: Platform[] = [
+    // Ground floor
+    { x: 0, y: 400, w: 1900, h: 60 },
+  ];
+
+  // Pseudo-random helper from seed
+  let s = seed;
+  const rnd = () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+
+  // Station 1: Leading to Tomb 1 (x: 280, y: 320)
+  const steps1Count = 2 + Math.floor(rnd() * 2); // 2 or 3 steps
+  let curX = 140;
+  let curY = 380;
+  for (let i = 0; i < steps1Count; i++) {
+    const w = 60 + Math.floor(rnd() * 25);
+    curX += 45 + Math.floor(rnd() * 15);
+    curY -= 28 + Math.floor(rnd() * 10);
+    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
+  }
+  // Tomb 1 main dais
+  list.push({ x: 260, y: 320, w: 90, h: 16 });
+
+  // Station 2: Leading to Tomb 2 (x: 650, y: 200) - Higher climb
+  const steps2Count = 3 + Math.floor(rnd() * 2); // 3 or 4 steps
+  curX = 400;
+  curY = 380;
+  for (let i = 0; i < steps2Count; i++) {
+    const w = 55 + Math.floor(rnd() * 25);
+    curX += 50 + Math.floor(rnd() * 15);
+    curY -= 40 + Math.floor(rnd() * 10);
+    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
+  }
+  // Tomb 2 main dais
+  list.push({ x: 620, y: 200, w: 95, h: 16 });
+
+  // Station 3: Leading to Tomb 3 (Arch-Lich Sanctum) (x: 1040, y: 110) - Highest climb
+  const steps3Count = 4 + Math.floor(rnd() * 2); // 4 or 5 steps
+  curX = 760;
+  curY = 380;
+  for (let i = 0; i < steps3Count; i++) {
+    const w = 55 + Math.floor(rnd() * 20);
+    curX += 50 + Math.floor(rnd() * 15);
+    curY -= 48 + Math.floor(rnd() * 8);
+    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
+  }
+  // Tomb 3 main dais
+  list.push({ x: 1010, y: 110, w: 100, h: 16 });
+
+  // Station 4: Descent and climb to Tomb 4 (x: 1420, y: 320)
+  curX = 1170;
+  curY = 220;
+  list.push({ x: curX, y: curY, w: 75, h: 14, isStair: true });
+  curX += 85;
+  curY += 50;
+  list.push({ x: curX, y: curY, w: 70, h: 14, isStair: true });
+  curX += 80;
+  curY += 45;
+  list.push({ x: curX, y: curY, w: 75, h: 14, isStair: true });
+  // Tomb 4 dais
+  list.push({ x: 1390, y: 320, w: 95, h: 16 });
+
+  // Altar platform at far right
+  list.push({ x: 1640, y: 350, w: 140, h: 40 });
+
+  return list;
 }
 
 export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
@@ -23,14 +99,18 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Near target detection
+  // Random stair seed state
+  const [stairSeed, setStairSeed] = useState(() => Math.floor(Math.random() * 10000));
+  const platforms = useMemo(() => generateProceduralPlatforms(stairSeed), [stairSeed]);
+
+  // Target detection
   const [nearbyTomb, setNearbyTomb] = useState<Tomb | null>(null);
   const [nearAltar, setNearAltar] = useState<boolean>(false);
 
-  // Player physics state
+  // Player physics
   const playerRef = useRef({
     x: 80,
-    y: 320,
+    y: 340,
     vx: 0,
     vy: 0,
     w: 24,
@@ -39,44 +119,21 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
     facingRight: true,
   });
 
-  // World dimensions
-  const worldWidth = 1850;
+  const worldWidth = 1880;
   const worldHeight = 460;
-  const altarX = 1700;
+  const altarX = 1680;
 
-  // Platforms layout
-  const platforms: Platform[] = [
-    // Ground floor
-    { x: 0, y: 400, w: 1850, h: 60 },
-    // Platform 1 (Screaming Crypt)
-    { x: 220, y: 320, w: 150, h: 16 },
-    // Platform 2 (Mid tier)
-    { x: 440, y: 260, w: 130, h: 16 },
-    // Platform 3 (Vampire Crypt)
-    { x: 600, y: 200, w: 160, h: 16 },
-    // Platform 4 (High jump bridge)
-    { x: 830, y: 160, w: 140, h: 16 },
-    // Platform 5 (Lich Sanctum top)
-    { x: 1000, y: 110, w: 180, h: 16 },
-    // Platform 6 (Descent)
-    { x: 1240, y: 220, w: 130, h: 16 },
-    // Platform 7 (Drowned Hollow)
-    { x: 1370, y: 320, w: 150, h: 16 },
-    // Altar dais
-    { x: 1640, y: 360, w: 180, h: 40 },
-  ];
-
-  // Wall torches
+  // Wall Torches
   const torches = [
     { x: 120, y: 250 },
-    { x: 300, y: 180 },
-    { x: 500, y: 140 },
-    { x: 700, y: 90 },
-    { x: 920, y: 80 },
-    { x: 1120, y: 160 },
-    { x: 1320, y: 240 },
-    { x: 1550, y: 260 },
-    { x: 1750, y: 220 },
+    { x: 300, y: 190 },
+    { x: 520, y: 150 },
+    { x: 740, y: 100 },
+    { x: 960, y: 80 },
+    { x: 1180, y: 160 },
+    { x: 1380, y: 240 },
+    { x: 1580, y: 260 },
+    { x: 1780, y: 220 },
   ];
 
   // Key tracking
@@ -87,13 +144,11 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
     interact: false,
   });
 
-  // Camera scroll offset
   const cameraXRef = useRef(0);
 
-  // Setup input listeners
+  // Keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent scrolling on arrows / space
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
         e.preventDefault();
       }
@@ -103,7 +158,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === ' ') {
         if (playerRef.current.isGrounded) {
           keysRef.current.up = true;
-          playerRef.current.vy = -11.5;
+          playerRef.current.vy = -11.8;
           playerRef.current.isGrounded = false;
           sounds.playJump();
         }
@@ -128,7 +183,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
     };
   }, []);
 
-  // Main game loop
+  // Main Render & Physics Loop
   useEffect(() => {
     let animId: number;
     const canvas = canvasRef.current;
@@ -137,6 +192,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
     if (!ctx) return;
 
     let frameCount = 0;
+    let stepTimer = 0;
 
     const loop = () => {
       frameCount++;
@@ -148,29 +204,28 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
       if (keys.left) {
         p.vx = -speed;
         p.facingRight = false;
+        if (p.isGrounded && ++stepTimer % 18 === 0) sounds.playStep();
       } else if (keys.right) {
         p.vx = speed;
         p.facingRight = true;
+        if (p.isGrounded && ++stepTimer % 18 === 0) sounds.playStep();
       } else {
-        p.vx *= 0.78; // friction
+        p.vx *= 0.78;
       }
 
       // 2. Vertical movement & gravity
-      p.vy += 0.55; // gravity
+      p.vy += 0.55;
       if (p.vy > 12) p.vy = 12;
 
-      // Apply horizontal
       p.x += p.vx;
       if (p.x < 10) p.x = 10;
       if (p.x > worldWidth - p.w - 10) p.x = worldWidth - p.w - 10;
 
-      // Apply vertical
       p.y += p.vy;
 
-      // 3. Platform collisions (box check)
+      // 3. Platform collisions
       p.isGrounded = false;
       for (const plat of platforms) {
-        // Landing on top of platform
         if (
           p.x + p.w > plat.x &&
           p.x < plat.x + plat.w &&
@@ -185,21 +240,20 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         }
       }
 
-      // Check nearby objects
+      // Check nearby interactive objects
       let foundTomb: Tomb | null = null;
       for (const t of tombs) {
-        const dist = Math.hypot(p.x + p.w / 2 - (t.x + 20), p.y + p.h / 2 - (t.y + 15));
-        if (dist < 55) {
+        const dist = Math.hypot(p.x + p.w / 2 - (t.x + 22), p.y + p.h / 2 - (t.y + 14));
+        if (dist < 60) {
           foundTomb = t;
           break;
         }
       }
       setNearbyTomb(foundTomb);
 
-      const distAltar = Math.hypot(p.x + p.w / 2 - (altarX + 30), p.y + p.h / 2 - 370);
+      const distAltar = Math.hypot(p.x + p.w / 2 - (altarX + 30), p.y + p.h / 2 - 365);
       setNearAltar(distAltar < 65);
 
-      // Handle interaction key trigger
       if (keys.interact) {
         keys.interact = false;
         if (foundTomb) {
@@ -211,7 +265,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         }
       }
 
-      // 4. Update Camera viewport
+      // Camera follow
       const canvasW = canvas.width;
       const targetCamX = p.x - canvasW / 2 + p.w / 2;
       const minCamX = 0;
@@ -225,114 +279,112 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
       ctx.save();
       ctx.translate(-camX, 0);
 
-      // Background Stone Wall
-      ctx.fillStyle = '#0a0812';
+      // Gothic stone wall background
+      ctx.fillStyle = '#080510';
       ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-      // Draw faint brick texture
-      ctx.strokeStyle = '#151124';
+      // Soft stone masonry grid
+      ctx.strokeStyle = 'rgba(28, 22, 45, 0.6)';
       ctx.lineWidth = 1;
-      for (let y = 0; y < worldHeight; y += 32) {
+      for (let y = 0; y < worldHeight; y += 36) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(worldWidth, y);
         ctx.stroke();
       }
-      for (let x = 0; x < worldWidth; x += 64) {
+      for (let x = 0; x < worldWidth; x += 72) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, worldHeight);
         ctx.stroke();
       }
 
-      // Draw Wall Torches & Flames
+      // Draw Wall Torches & Glowing Embers
       torches.forEach((torch, i) => {
-        // Torch mount
-        ctx.fillStyle = '#4c3928';
+        // Sconce
+        ctx.fillStyle = '#3a2c1d';
         ctx.fillRect(torch.x - 3, torch.y, 6, 16);
-        ctx.fillStyle = '#785b3f';
+        ctx.fillStyle = '#5c452e';
         ctx.fillRect(torch.x - 5, torch.y - 2, 10, 4);
 
-        // Animated torch flame
-        const flameOffset = Math.sin(frameCount * 0.15 + i) * 2;
-        const flameColor = i % 2 === 0 ? '#f59e0b' : '#c084fc';
-        const innerColor = i % 2 === 0 ? '#fef08a' : '#f3e8ff';
+        // Animated Flame with soft glow
+        const flicker = Math.sin(frameCount * 0.14 + i * 2) * 2;
+        const color = i % 2 === 0 ? '#f59e0b' : '#c084fc';
+        const inner = i % 2 === 0 ? '#fef08a' : '#f3e8ff';
 
-        ctx.fillStyle = flameColor;
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.ellipse(torch.x, torch.y - 8 + flameOffset, 7, 11, 0, 0, Math.PI * 2);
+        ctx.ellipse(torch.x, torch.y - 8 + flicker, 7, 11, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = innerColor;
+        ctx.fillStyle = inner;
         ctx.beginPath();
-        ctx.ellipse(torch.x, torch.y - 7 + flameOffset, 3.5, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(torch.x, torch.y - 7 + flicker, 3.5, 6, 0, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Draw Platforms
+      // Draw Platforms & Procedural Stairs
       platforms.forEach(plat => {
-        // Platform body
-        ctx.fillStyle = '#1c172a';
+        // Platform main block
+        ctx.fillStyle = plat.isStair ? '#1e182f' : '#181226';
         ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
 
         // Stone border
-        ctx.strokeStyle = '#382f50';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = plat.isStair ? '#3e3258' : '#332746';
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(plat.x, plat.y, plat.w, plat.h);
 
-        // Platform top moss / mossy crypt rim
-        ctx.fillStyle = '#2e2544';
-        ctx.fillRect(plat.x, plat.y, plat.w, 4);
+        // Top stone highlight
+        ctx.fillStyle = plat.isStair ? '#2e2544' : '#281f38';
+        ctx.fillRect(plat.x, plat.y, plat.w, 3);
       });
 
       // Draw Tombs & Sarcophagi
       tombs.forEach(t => {
         const isPlundered = t.status === 'plundered';
 
-        // Sarcophagus base
-        ctx.fillStyle = isPlundered ? '#18151f' : '#27203b';
+        // Sarcophagus stone box
+        ctx.fillStyle = isPlundered ? '#15121b' : '#231b35';
         ctx.fillRect(t.x, t.y, 44, 28);
-        ctx.strokeStyle = isPlundered ? '#403852' : '#a855f7';
+        ctx.strokeStyle = isPlundered ? '#3a3248' : '#9333ea';
         ctx.lineWidth = isPlundered ? 1 : 2;
         ctx.strokeRect(t.x, t.y, 44, 28);
 
-        // Tomb lid / Headstone
+        // Carved arched tombstone
         ctx.beginPath();
         ctx.arc(t.x + 22, t.y, 14, Math.PI, 0, false);
-        ctx.fillStyle = isPlundered ? '#221c2c' : '#372b54';
+        ctx.fillStyle = isPlundered ? '#1c1724' : '#31234b';
         ctx.fill();
-        ctx.strokeStyle = isPlundered ? '#403852' : '#c084fc';
+        ctx.strokeStyle = isPlundered ? '#3a3248' : '#c084fc';
         ctx.stroke();
 
-        // Cross or skull emblem
-        ctx.fillStyle = isPlundered ? '#493f5e' : '#e9d5ff';
-        ctx.font = '10px sans-serif';
+        // Icon
+        ctx.font = '11px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(isPlundered ? '🦴' : '🪦', t.x + 22, t.y + 18);
 
-        // Floating label
+        // Floating Reward Tag
         ctx.font = '8px "Press Start 2P", monospace';
         ctx.fillStyle = isPlundered ? '#71717a' : '#34d399';
         ctx.fillText(isPlundered ? 'LOOTED' : `${t.bountyXTR} XTR`, t.x + 22, t.y - 18);
 
-        // Spooky glow pulse around sealed tomb
+        // Pulsing ethereal aura for sealed crypts
         if (!isPlundered) {
-          const glowAlpha = 0.2 + Math.sin(frameCount * 0.08 + t.x) * 0.12;
-          ctx.strokeStyle = `rgba(168, 85, 247, ${glowAlpha})`;
-          ctx.lineWidth = 4;
+          const aura = 0.25 + Math.sin(frameCount * 0.08 + t.x) * 0.15;
+          ctx.strokeStyle = `rgba(168, 85, 247, ${aura})`;
+          ctx.lineWidth = 3;
           ctx.strokeRect(t.x - 2, t.y - 2, 48, 32);
         }
       });
 
-      // Draw Ancient Burial Altar (where players bury their own loot)
-      ctx.fillStyle = '#2a1a44';
+      // Draw Burial Altar
+      ctx.fillStyle = '#26143d';
       ctx.fillRect(altarX, 350, 60, 50);
       ctx.strokeStyle = '#e879f9';
       ctx.lineWidth = 2;
       ctx.strokeRect(altarX, 350, 60, 50);
 
-      // Altar mystical runes
-      ctx.font = '12px serif';
+      ctx.font = '14px serif';
       ctx.fillStyle = '#f0abfc';
       ctx.textAlign = 'center';
       ctx.fillText('⚰️', altarX + 30, 375);
@@ -344,11 +396,11 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
       ctx.translate(p.x, p.y);
 
       // Cloak
-      ctx.fillStyle = '#3b1d60';
+      ctx.fillStyle = '#341555';
       ctx.fillRect(4, 10, p.w - 8, p.h - 10);
 
-      // Hood / Head
-      ctx.fillStyle = '#220e3a';
+      // Hood
+      ctx.fillStyle = '#1c0a32';
       ctx.beginPath();
       ctx.arc(p.w / 2, 8, 8, 0, Math.PI * 2);
       ctx.fill();
@@ -363,7 +415,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         ctx.fillRect(p.w / 2 - 7, 6, 2, 2);
       }
 
-      // Lantern in hand
+      // Golden Lantern
       const lanternX = p.facingRight ? p.w + 2 : -6;
       ctx.fillStyle = '#ca8a04';
       ctx.fillRect(lanternX, 16, 5, 8);
@@ -374,42 +426,41 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 
       ctx.restore();
 
-      // 5. Atmospheric Darkness & Lantern Lighting Mask
-      ctx.restore(); // Exit camera coordinate space for global light mask
+      // Dynamic Ambient Light Mask (Radial Lantern Cutout)
+      ctx.restore(); // Exit camera coordinate space
 
-      // Create a full-screen dark overlay with cutouts
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = canvas.width;
       tempCanvas.height = canvas.height;
       const tCtx = tempCanvas.getContext('2d');
       if (tCtx) {
-        // Base ambient darkness
-        tCtx.fillStyle = 'rgba(4, 3, 8, 0.88)';
+        // Deep ambient darkness
+        tCtx.fillStyle = 'rgba(5, 3, 9, 0.88)';
         tCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Destination-out punch holes for lantern light
+        // Punch out light circles
         tCtx.globalCompositeOperation = 'destination-out';
 
         // Player Lantern Light
         const screenPx = p.x - camX + (p.facingRight ? p.w + 4 : -4);
         const screenPy = p.y + 20;
-        const lanternRadius = 150 + Math.sin(frameCount * 0.1) * 6;
+        const lanternRadius = 165 + Math.sin(frameCount * 0.08) * 8;
 
-        const radGrad = tCtx.createRadialGradient(screenPx, screenPy, 10, screenPx, screenPy, lanternRadius);
+        const radGrad = tCtx.createRadialGradient(screenPx, screenPy, 15, screenPx, screenPy, lanternRadius);
         radGrad.addColorStop(0, 'rgba(0,0,0,1)');
-        radGrad.addColorStop(0.5, 'rgba(0,0,0,0.7)');
+        radGrad.addColorStop(0.55, 'rgba(0,0,0,0.7)');
         radGrad.addColorStop(1, 'rgba(0,0,0,0)');
         tCtx.fillStyle = radGrad;
         tCtx.beginPath();
         tCtx.arc(screenPx, screenPy, lanternRadius, 0, Math.PI * 2);
         tCtx.fill();
 
-        // Torch light holes
+        // Wall Torch light holes
         torches.forEach((torch, i) => {
           const sTx = torch.x - camX;
           const sTy = torch.y - 4;
-          if (sTx > -50 && sTx < canvas.width + 50) {
-            const torchRadius = 75 + Math.sin(frameCount * 0.12 + i) * 4;
+          if (sTx > -60 && sTx < canvas.width + 60) {
+            const torchRadius = 80 + Math.sin(frameCount * 0.12 + i) * 5;
             const tGrad = tCtx.createRadialGradient(sTx, sTy, 4, sTx, sTy, torchRadius);
             tGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
             tGrad.addColorStop(1, 'rgba(0,0,0,0)');
@@ -420,43 +471,46 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
           }
         });
 
-        // Draw light mask onto main canvas
         ctx.drawImage(tempCanvas, 0, 0);
       }
 
-      // 6. Draw HUD overlays (Distance, Key prompts)
+      // HUD Prompt Overlay
       if (foundTomb) {
-        ctx.fillStyle = 'rgba(15, 12, 25, 0.9)';
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 2;
-        const pillW = 240;
+        ctx.fillStyle = 'rgba(18, 14, 28, 0.94)';
+        ctx.strokeStyle = '#9333ea';
+        ctx.lineWidth = 1.5;
+        const pillW = 250;
         const pillX = canvas.width / 2 - pillW / 2;
-        ctx.fillRect(pillX, 24, pillW, 40);
-        ctx.strokeRect(pillX, 24, pillW, 40);
+        ctx.beginPath();
+        ctx.roundRect(pillX, 20, pillW, 44, 12);
+        ctx.fill();
+        ctx.stroke();
 
         ctx.font = '9px "Press Start 2P", monospace';
         ctx.fillStyle = '#f3e8ff';
         ctx.textAlign = 'center';
-        ctx.fillText(`PRESS [E] TO INSPECT`, canvas.width / 2, 42);
+        ctx.fillText(`PRESS [E] TO INSPECT`, canvas.width / 2, 38);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = '#34d399';
-        ctx.fillText(`Reward: ${foundTomb.bountyXTR} XTR (${foundTomb.status})`, canvas.width / 2, 57);
+        ctx.fillText(`Bounty: ${foundTomb.bountyXTR} XTR (${foundTomb.status})`, canvas.width / 2, 54);
       } else if (distAltar < 65) {
-        ctx.fillStyle = 'rgba(25, 12, 35, 0.9)';
+        ctx.fillStyle = 'rgba(28, 14, 38, 0.94)';
         ctx.strokeStyle = '#e879f9';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         const pillW = 260;
         const pillX = canvas.width / 2 - pillW / 2;
-        ctx.fillRect(pillX, 24, pillW, 40);
-        ctx.strokeRect(pillX, 24, pillW, 40);
+        ctx.beginPath();
+        ctx.roundRect(pillX, 20, pillW, 44, 12);
+        ctx.fill();
+        ctx.stroke();
 
         ctx.font = '9px "Press Start 2P", monospace';
         ctx.fillStyle = '#fdf4ff';
         ctx.textAlign = 'center';
-        ctx.fillText(`PRESS [E] TO BURY LOOT`, canvas.width / 2, 42);
+        ctx.fillText(`PRESS [E] TO BURY LOOT`, canvas.width / 2, 38);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = '#f472b6';
-        ctx.fillText('Seal your own riddle in the crypt', canvas.width / 2, 57);
+        ctx.fillText('Seal your own riddle in the crypt', canvas.width / 2, 54);
       }
 
       animId = requestAnimationFrame(loop);
@@ -464,10 +518,30 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, [tombs, onSelectTomb, onOpenBuryModal]);
+  }, [tombs, platforms, onSelectTomb, onOpenBuryModal]);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-purple-900/60 shadow-2xl bg-black">
+    <div className="relative rounded-3xl overflow-hidden border border-purple-900/50 shadow-[0_0_35px_rgba(147,51,234,0.18)] bg-stone-950">
+      {/* Reshuffle stairs control bar */}
+      <div className="bg-stone-950/90 border-b border-purple-950 px-4 py-2 flex justify-between items-center text-xs font-mono">
+        <span className="text-stone-400 flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Procedural Catacomb Active (Seed #{stairSeed})
+        </span>
+
+        <button
+          onClick={() => {
+            const nextSeed = Math.floor(Math.random() * 10000);
+            setStairSeed(nextSeed);
+            sounds.playInspect();
+          }}
+          className="px-3 py-1 bg-stone-900 hover:bg-stone-800 border border-purple-900/40 rounded-xl text-purple-300 hover:text-purple-100 flex items-center gap-1.5 transition-colors cursor-pointer text-[11px]"
+          title="Procedurally randomize the stepping platforms leading to the tombs"
+        >
+          <Shuffle className="w-3.5 h-3.5 text-purple-400" /> Reshuffle Steps
+        </button>
+      </div>
+
       {/* Canvas container */}
       <div className="w-full aspect-[2/1] max-h-[520px] bg-stone-950 flex justify-center items-center relative">
         <canvas
@@ -477,21 +551,21 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
           className="w-full h-full object-contain cursor-crosshair"
         />
 
-        {/* Floating Quick Action Button when near an interactive object */}
+        {/* Floating Quick Action Button */}
         {nearbyTomb && (
           <button
             onClick={() => onSelectTomb(nearbyTomb)}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-purple-700 hover:bg-purple-600 text-white font-pixel text-xs rounded-xl shadow-lg border border-purple-300 flex items-center gap-2 animate-bounce cursor-pointer z-10"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-purple-700 hover:bg-purple-600 text-white font-pixel text-xs rounded-2xl shadow-xl border border-purple-300 flex items-center gap-2 animate-bounce cursor-pointer z-10"
           >
             <Key className="w-4 h-4 text-amber-300" />
-            Inspect {nearbyTomb.name.slice(0, 20)}... [E]
+            Inspect {nearbyTomb.name.slice(0, 18)}... [E]
           </button>
         )}
 
         {nearAltar && !nearbyTomb && (
           <button
             onClick={onOpenBuryModal}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-fuchsia-800 hover:bg-fuchsia-700 text-white font-pixel text-xs rounded-xl shadow-lg border border-fuchsia-300 flex items-center gap-2 animate-bounce cursor-pointer z-10"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-fuchsia-800 hover:bg-fuchsia-700 text-white font-pixel text-xs rounded-2xl shadow-xl border border-fuchsia-300 flex items-center gap-2 animate-bounce cursor-pointer z-10"
           >
             <Sparkles className="w-4 h-4 text-yellow-300" />
             Bury New Treasure [E]
@@ -499,28 +573,28 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         )}
       </div>
 
-      {/* Retro Gamepad / Touch Controls bar for mobile or easy play */}
-      <div className="bg-stone-900/90 border-t border-purple-900/40 p-3 flex flex-wrap justify-between items-center text-xs text-stone-400 font-mono">
+      {/* Control bar */}
+      <div className="bg-stone-950 border-t border-purple-950/60 p-3.5 flex flex-wrap justify-between items-center text-xs text-stone-400 font-mono">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5 text-purple-300">
-            <Compass className="w-4 h-4" /> Move: <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">A</kbd> <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">D</kbd> or <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">←</kbd> <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">→</kbd>
+            <Compass className="w-4 h-4" /> Move: <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">A</kbd> <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">D</kbd> or <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">←</kbd> <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">→</kbd>
           </span>
           <span className="flex items-center gap-1.5 text-emerald-300">
-            Jump: <kbd className="px-2 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">Space</kbd> or <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">W</kbd>
+            Jump: <kbd className="px-2 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">Space</kbd> or <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">W</kbd>
           </span>
           <span className="flex items-center gap-1.5 text-amber-300">
-            Action: <kbd className="px-1.5 py-0.5 bg-stone-800 border border-stone-700 rounded text-stone-200">E</kbd>
+            Action: <kbd className="px-1.5 py-0.5 bg-stone-900 border border-stone-800 rounded text-stone-200">E</kbd>
           </span>
         </div>
 
-        {/* On-screen touch buttons */}
+        {/* Touch buttons */}
         <div className="flex gap-2 sm:hidden mt-2 w-full justify-center">
           <button
             onMouseDown={() => { keysRef.current.left = true; }}
             onMouseUp={() => { keysRef.current.left = false; }}
             onTouchStart={() => { keysRef.current.left = true; }}
             onTouchEnd={() => { keysRef.current.left = false; }}
-            className="px-4 py-2 bg-stone-800 border border-stone-700 rounded active:bg-stone-700"
+            className="px-4 py-2 bg-stone-900 border border-stone-800 rounded-xl active:bg-stone-800 text-stone-200"
           >
             ◀
           </button>
@@ -529,26 +603,26 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
             onMouseUp={() => { keysRef.current.right = false; }}
             onTouchStart={() => { keysRef.current.right = true; }}
             onTouchEnd={() => { keysRef.current.right = false; }}
-            className="px-4 py-2 bg-stone-800 border border-stone-700 rounded active:bg-stone-700"
+            className="px-4 py-2 bg-stone-900 border border-stone-800 rounded-xl active:bg-stone-800 text-stone-200"
           >
             ▶
           </button>
           <button
             onClick={() => {
               if (playerRef.current.isGrounded) {
-                playerRef.current.vy = -11.5;
+                playerRef.current.vy = -11.8;
                 playerRef.current.isGrounded = false;
                 sounds.playJump();
               }
             }}
-            className="px-4 py-2 bg-purple-900 border border-purple-600 rounded active:bg-purple-700 text-purple-200 font-pixel text-[10px]"
+            className="px-4 py-2 bg-purple-900 border border-purple-700 rounded-xl active:bg-purple-800 text-purple-200 font-pixel text-[10px]"
           >
             JUMP
           </button>
         </div>
 
         <div className="hidden md:flex items-center gap-2 text-stone-500">
-          <span>Explore all 4 tombs or visit the Altar at the far right</span>
+          <span>Staircases procedural &bull; Climb each set of steps to reach sarcophagi</span>
         </div>
       </div>
     </div>

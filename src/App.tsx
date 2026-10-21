@@ -9,6 +9,7 @@ import { CryptLedger } from './components/CryptLedger';
 import { TombModal } from './components/TombModal';
 import { BuryTombModal } from './components/BuryTombModal';
 import { PrivacyArchitectureModal } from './components/PrivacyArchitectureModal';
+import { WalletConnectModal } from './components/WalletConnectModal';
 import { ShieldCheck, Sparkles, Ghost, Award, ExternalLink } from 'lucide-react';
 
 export function App() {
@@ -29,13 +30,14 @@ export function App() {
   const [selectedTomb, setSelectedTomb] = useState<Tomb | null>(null);
   const [isBuryModalOpen, setIsBuryModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'game' | 'ledger'>('game');
   const [isMuted, setIsMuted] = useState(sounds.getMuted());
 
   // Wallet / Simulator state
   const [hasSapient, setHasSapient] = useState(false);
-  const [isSimulator, setIsSimulator] = useState(false);
-  const [userAddress, setUserAddress] = useState('');
+  const [isSimulator, setIsSimulator] = useState(true);
+  const [userAddress, setUserAddress] = useState('otl_esm_1shadow_grave_robber_demo');
   const [userBalance, setUserBalance] = useState(1250); // Default demo balance in XTR
 
   // Detect Sapient on load
@@ -43,14 +45,13 @@ export function App() {
     const checkSapient = () => {
       const available = TariWalletService.isAvailable();
       setHasSapient(available);
-      if (!available) {
-        setIsSimulator(true);
-        setUserAddress('otl_esm_1shadow_grave_robber_demo');
+      if (available) {
+        setIsSimulator(false);
       }
     };
 
     checkSapient();
-    const timer = setTimeout(checkSapient, 500); // Check again after connector loads
+    const timer = setTimeout(checkSapient, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -59,25 +60,32 @@ export function App() {
     localStorage.setItem('graverobber_tombs', JSON.stringify(tombs));
   }, [tombs]);
 
-  // Connect Wallet
-  const handleConnectWallet = async () => {
-    if (!hasSapient) {
-      setIsSimulator(true);
-      setUserAddress('otl_esm_1shadow_grave_robber_demo');
-      return;
-    }
-
+  // Connect Live Sapient Wallet
+  const handleConnectLive = async () => {
     try {
       const res = await TariWalletService.connect();
       setUserAddress(res.walletAddress || res.address);
+      setIsSimulator(false);
       if (res.balances && res.balances.length > 0) {
         const bal = Number(res.balances[0].revealed_balance || 1000);
         setUserBalance(bal);
       }
       sounds.playInspect();
     } catch (err: any) {
-      alert(err.message || 'Failed to connect to Sapient');
+      if (err.message === 'SAPIENT_NOT_INSTALLED') {
+        setIsWalletModalOpen(true);
+      } else {
+        alert(err.message || 'Failed to connect to Sapient');
+      }
     }
+  };
+
+  // Enable Sandbox Simulator
+  const handleEnableSimulator = () => {
+    setIsSimulator(true);
+    setUserAddress('otl_esm_1shadow_grave_robber_demo');
+    setUserBalance(1250);
+    sounds.playInspect();
   };
 
   // Plunder Success
@@ -124,7 +132,7 @@ export function App() {
         setIsSimulator={setIsSimulator}
         userAddress={userAddress}
         userBalance={userBalance}
-        onConnectWallet={handleConnectWallet}
+        onOpenWalletModal={() => setIsWalletModalOpen(true)}
         onOpenPrivacyGuide={() => setIsPrivacyModalOpen(true)}
         hasSapient={hasSapient}
       />
@@ -278,6 +286,14 @@ export function App() {
       </footer>
 
       {/* Modals */}
+      <WalletConnectModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        hasSapient={hasSapient}
+        onConnectLive={handleConnectLive}
+        onEnableSimulator={handleEnableSimulator}
+      />
+
       {selectedTomb && (
         <TombModal
           tomb={selectedTomb}
@@ -285,7 +301,7 @@ export function App() {
           isSimulator={isSimulator}
           onClose={() => setSelectedTomb(null)}
           onPlunderSuccess={handlePlunderSuccess}
-          onConnectWallet={handleConnectWallet}
+          onConnectWallet={() => setIsWalletModalOpen(true)}
         />
       )}
 
