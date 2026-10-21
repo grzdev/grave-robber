@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import type { Tomb } from '../types/tari';
 import { sounds } from '../services/soundEffects';
-import { Key, Sparkles, Compass, Shuffle } from 'lucide-react';
+import { Key, Sparkles, Compass } from 'lucide-react';
 
 interface CryptPlatformerProps {
   tombs: Tomb[];
@@ -34,30 +34,27 @@ function generateProceduralPlatforms(seed: number): Platform[] {
     return s / 233280;
   };
 
-  // Station 1: Leading to Tomb 1 (x: 280, y: 320)
-  const steps1Count = 2 + Math.floor(rnd() * 2); // 2 or 3 steps
-  let curX = 140;
-  let curY = 380;
-  for (let i = 0; i < steps1Count; i++) {
-    const w = 60 + Math.floor(rnd() * 25);
-    curX += 45 + Math.floor(rnd() * 15);
-    curY -= 28 + Math.floor(rnd() * 10);
-    list.push({ x: curX, y: curY, w, h: 14, isStair: true });
-  }
-  // Tomb 1 main dais
-  list.push({ x: 260, y: 320, w: 90, h: 16 });
+  let curX = 0;
+  let curY = 0;
 
-  // Station 2: Leading to Tomb 2 (x: 650, y: 200) - Higher climb
+  // Station 1: Clean ascent leading to Tomb 1 (Tomb 1 is at x: 280, y: 330)
+  // Stepping stones strictly before the dais, no rogue step behind it
+  list.push({ x: 130, y: 375, w: 55, h: 14, isStair: true });
+  list.push({ x: 195, y: 350, w: 50, h: 14, isStair: true });
+  // Tomb 1 main dais (spans x: 255 to 350)
+  list.push({ x: 255, y: 330, w: 95, h: 16 });
+
+  // Station 2: Clear gap after Tomb 1, then climb to Tomb 2 (x: 650, y: 200)
   const steps2Count = 3 + Math.floor(rnd() * 2); // 3 or 4 steps
-  curX = 400;
+  curX = 420;
   curY = 380;
   for (let i = 0; i < steps2Count; i++) {
-    const w = 55 + Math.floor(rnd() * 25);
-    curX += 50 + Math.floor(rnd() * 15);
-    curY -= 40 + Math.floor(rnd() * 10);
+    const w = 55 + Math.floor(rnd() * 20);
+    curX += 45 + Math.floor(rnd() * 12);
+    curY -= 38 + Math.floor(rnd() * 8);
     list.push({ x: curX, y: curY, w, h: 14, isStair: true });
   }
-  // Tomb 2 main dais
+  // Tomb 2 main dais (spans x: 620 to 715)
   list.push({ x: 620, y: 200, w: 95, h: 16 });
 
   // Station 3: Leading to Tomb 3 (Arch-Lich Sanctum) (x: 1040, y: 110) - Highest climb
@@ -99,9 +96,8 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Random stair seed state
-  const [stairSeed, setStairSeed] = useState(() => Math.floor(Math.random() * 10000));
-  const platforms = useMemo(() => generateProceduralPlatforms(stairSeed), [stairSeed]);
+  // Procedural platforms
+  const platforms = useMemo(() => generateProceduralPlatforms(42), []);
 
   // Target detection
   const [nearbyTomb, setNearbyTomb] = useState<Tomb | null>(null);
@@ -522,26 +518,6 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
 
   return (
     <div className="relative rounded-3xl overflow-hidden border border-purple-900/50 shadow-[0_0_35px_rgba(147,51,234,0.18)] bg-stone-950">
-      {/* Reshuffle stairs control bar */}
-      <div className="bg-stone-950/90 border-b border-purple-950 px-4 py-2 flex justify-between items-center text-xs font-mono">
-        <span className="text-stone-400 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          Procedural Catacomb Active (Seed #{stairSeed})
-        </span>
-
-        <button
-          onClick={() => {
-            const nextSeed = Math.floor(Math.random() * 10000);
-            setStairSeed(nextSeed);
-            sounds.playInspect();
-          }}
-          className="px-3 py-1 bg-stone-900 hover:bg-stone-800 border border-purple-900/40 rounded-xl text-purple-300 hover:text-purple-100 flex items-center gap-1.5 transition-colors cursor-pointer text-[11px]"
-          title="Procedurally randomize the stepping platforms leading to the tombs"
-        >
-          <Shuffle className="w-3.5 h-3.5 text-purple-400" /> Reshuffle Steps
-        </button>
-      </div>
-
       {/* Canvas container */}
       <div className="w-full aspect-[2/1] max-h-[520px] bg-stone-950 flex justify-center items-center relative">
         <canvas

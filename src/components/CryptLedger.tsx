@@ -6,12 +6,14 @@ interface CryptLedgerProps {
   tombs: Tomb[];
   onSelectTomb: (tomb: Tomb) => void;
   onOpenBuryModal: () => void;
+  onResetTombs?: () => void;
 }
 
 export const CryptLedger: React.FC<CryptLedgerProps> = ({
   tombs,
   onSelectTomb,
   onOpenBuryModal,
+  onResetTombs,
 }) => {
   const [filter, setFilter] = useState<'all' | 'sealed' | 'plundered'>('all');
   const [search, setSearch] = useState('');
@@ -68,12 +70,24 @@ export const CryptLedger: React.FC<CryptLedgerProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={onOpenBuryModal}
-          className="px-4 py-2 bg-gradient-to-r from-fuchsia-800 to-purple-800 hover:from-fuchsia-700 hover:to-purple-700 text-white font-pixel text-xs rounded-xl border border-fuchsia-400/40 flex items-center gap-2 shadow-lg"
-        >
-          <span>⚰️</span> Dig New Grave
-        </button>
+        <div className="flex items-center gap-2">
+          {onResetTombs && (
+            <button
+              onClick={onResetTombs}
+              className="px-3 py-2 bg-stone-950 hover:bg-stone-800 border border-stone-800 rounded-xl text-stone-400 hover:text-stone-200 text-xs font-mono cursor-pointer transition-colors"
+              title="Reset all plundered tombs back to sealed state for testing"
+            >
+              🔄 Reset Crypts
+            </button>
+          )}
+
+          <button
+            onClick={onOpenBuryModal}
+            className="px-4 py-2 bg-gradient-to-r from-fuchsia-800 to-purple-800 hover:from-fuchsia-700 hover:to-purple-700 text-white font-pixel text-xs rounded-xl border border-fuchsia-400/40 flex items-center gap-2 shadow-lg"
+          >
+            <span>⚰️</span> Dig New Grave
+          </button>
+        </div>
       </div>
 
       {/* Grid of Tombs */}

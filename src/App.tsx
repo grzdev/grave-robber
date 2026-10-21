@@ -113,6 +113,14 @@ export function App() {
     setTombs(prev => [newTomb, ...prev]);
   };
 
+  // Reset All Tombs back to Initial Sealed State
+  const handleResetTombs = () => {
+    localStorage.removeItem('graverobber_tombs');
+    setTombs(INITIAL_TOMBS);
+    setUserBalance(1250);
+    sounds.playInspect();
+  };
+
   // Stats
   const sealedCount = tombs.filter(t => t.status === 'sealed').length;
   const plunderedCount = tombs.filter(t => t.status === 'plundered').length;
@@ -201,6 +209,7 @@ export function App() {
             tombs={tombs}
             onSelectTomb={t => setSelectedTomb(t)}
             onOpenBuryModal={() => setIsBuryModalOpen(true)}
+            onResetTombs={handleResetTombs}
           />
         )}
 
