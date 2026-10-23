@@ -119,7 +119,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({
                   <span>Option 2: Instant Sandbox Simulator (No Install)</span>
                 </div>
                 <p className="text-xs text-stone-400 font-mono">
-                  Test the complete game immediately with simulated Tari testnet blocks, 1,250 test XTR, and instant cryptographic hashlock verification.
+                  Test the complete game immediately with simulated Tari testnet blocks, 1,250 test TARI, and instant cryptographic hashlock verification.
                 </p>
                 <button
                   onClick={() => {

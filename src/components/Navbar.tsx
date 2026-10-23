@@ -124,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-stone-300 font-bold">
-                {userBalance} <span className="text-emerald-400">XTR</span>
+                {userBalance} <span className="text-emerald-400">TARI</span>
               </span>
               <span className="text-stone-500 hidden md:inline">
                 {userAddress.slice(0, 8)}...{userAddress.slice(-4)}

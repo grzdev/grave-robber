@@ -152,7 +152,7 @@ export const CryptLedger: React.FC<CryptLedgerProps> = ({
                     <ShieldCheck className="w-3 h-3 text-emerald-400" /> Bounty:
                   </span>
                   <span className="font-pixel text-xs text-emerald-400 font-bold">
-                    {tomb.bountyXTR} XTR
+                    {tomb.bountyXTR} TARI
                   </span>
                 </div>
               </div>

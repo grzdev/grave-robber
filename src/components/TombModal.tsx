@@ -221,7 +221,7 @@ export const TombModal: React.FC<TombModalProps> = ({
                   CURSE LIFTED • BOUNTY PLUNDERED!
                 </div>
                 <h4 className="font-cinzel text-xl sm:text-2xl font-black text-amber-300">
-                  +{victoryData.bounty} XTR Added
+                  +{victoryData.bounty} TARI Added
                 </h4>
                 <p className="text-[11px] text-stone-400 font-mono">
                   Transferred confidentially to your stealth wallet
@@ -265,7 +265,7 @@ export const TombModal: React.FC<TombModalProps> = ({
                     Treasure Inside
                   </span>
                   <span className="text-xl font-bold font-pixel text-emerald-400">
-                    {tomb.bountyXTR} <span className="text-xs font-sans text-stone-400">XTR</span>
+                    {tomb.bountyXTR} <span className="text-xs font-sans text-stone-400">TARI</span>
                   </span>
                 </div>
                 <div className="text-right text-xs font-mono text-stone-400">
@@ -288,18 +288,23 @@ export const TombModal: React.FC<TombModalProps> = ({
 
               {/* Plundered status or Solve Form */}
               {isPlundered ? (
-                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-1.5">
+                <div className="p-3 bg-stone-950/70 border border-stone-800 rounded-xl space-y-2 overflow-hidden">
                   <div className="flex items-center gap-2 text-stone-400 font-pixel text-[11px]">
-                    <Skull className="w-3.5 h-3.5 text-stone-500" />
+                    <Skull className="w-3.5 h-3.5 text-stone-500 shrink-0" />
                     <span>THIS TOMB HAS BEEN PLUNDERED</span>
                   </div>
-                  <p className="text-[11px] text-stone-400 font-mono">
-                    Looted by: <span className="text-purple-300">{tomb.plunderedBy}</span>
-                  </p>
+                  <div className="text-[11px] text-stone-400 font-mono space-y-1">
+                    <span className="text-stone-500 block text-[10px] uppercase tracking-wider">Looted by:</span>
+                    <div className="p-2 bg-stone-900 border border-purple-950/80 rounded-lg text-purple-300 font-mono text-[11px] break-all select-all">
+                      {tomb.plunderedBy}
+                    </div>
+                  </div>
                   {tomb.txHash && (
-                    <p className="text-[10px] text-stone-500 font-mono flex items-center gap-1">
-                      Tx: {tomb.txHash} <ExternalLink className="w-3 h-3 text-stone-400 inline" />
-                    </p>
+                    <div className="text-[10px] text-stone-500 font-mono flex items-center gap-1.5 break-all pt-1">
+                      <span className="shrink-0">Tx:</span>
+                      <span className="text-stone-400 break-all">{tomb.txHash}</span>
+                      <ExternalLink className="w-3 h-3 text-stone-400 shrink-0 inline" />
+                    </div>
                   )}
                 </div>
               ) : (

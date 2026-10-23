@@ -339,7 +339,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         // Floating Reward Tag
         ctx.font = '8px "Press Start 2P", monospace';
         ctx.fillStyle = isPlundered ? '#71717a' : '#34d399';
-        ctx.fillText(isPlundered ? 'LOOTED' : `${t.bountyXTR} XTR`, t.x + 22, t.y - 18);
+        ctx.fillText(isPlundered ? 'LOOTED' : `${t.bountyXTR} TARI`, t.x + 22, t.y - 18);
 
         // Pulsing ethereal aura for sealed crypts
         if (!isPlundered) {
@@ -466,7 +466,7 @@ export const CryptPlatformer: React.FC<CryptPlatformerProps> = ({
         ctx.fillText(`PRESS [E] TO INSPECT`, canvas.width / 2, 38);
         ctx.font = '11px sans-serif';
         ctx.fillStyle = '#34d399';
-        ctx.fillText(`Bounty: ${foundTomb.bountyXTR} XTR (${foundTomb.status})`, canvas.width / 2, 54);
+        ctx.fillText(`Bounty: ${foundTomb.bountyXTR} TARI (${foundTomb.status})`, canvas.width / 2, 54);
       } else if (distAltar < 65) {
         ctx.fillStyle = 'rgba(28, 14, 38, 0.94)';
         ctx.strokeStyle = '#e879f9';

@@ -21,7 +21,7 @@ On transparent blockchains (like Ethereum or Solana), putting a puzzle or bounty
 **Grave Robber** solves this using **Tari Ootle's programmable privacy** and the **Sapient Web Extension**:
 1. **Preimage Hashlocks:** Riddles are sealed with SHA-256 / Blake2b cryptographic commitments.
 2. **Stealth Payouts (`sendPrivately`):** When a tomb's seal is broken, the bounty is delivered directly into a one-time, unlinkable **bech32m stealth address** (`otl_esm_1...`). Observers see the crypt was opened, but *never* which wallet received the bounty.
-3. **2D Retro Catacomb Platformer:** Players physically traverse atmospheric, candle-lit catacombs, explore tombs, solve ancient occult riddles, or visit the Altar to bury their own secret treasures with XTR bounties.
+3. **2D Retro Catacomb Platformer:** Players physically traverse atmospheric, candle-lit catacombs, explore tombs, solve ancient occult riddles, or visit the Altar to bury their own secret treasures with TARI bounties.
 
 ---
 
@@ -41,7 +41,7 @@ On transparent blockchains (like Ethereum or Solana), putting a puzzle or bounty
 - **🔊 Procedural 8-Bit Web Audio:**
   - 100% self-contained retro sound synthesizer (jumps, chest opening arpeggios, riddle curses, ambient dungeon hums). Zero external audio dependencies.
 - **⚰️ "Dig a New Grave" Altar:**
-  - Anyone can deposit testnet XTR, carve an ominous riddle, and create a permanent on-chain tomb for other players to loot.
+  - Anyone can deposit testnet TARI, carve an ominous riddle, and create a permanent on-chain tomb for other players to loot.
 
 ---
 
@@ -108,7 +108,7 @@ npm run preview
 ### Reddit (`r/tari`) / Bluesky:
 > **🪦 Grave Robber: A 2D Gothic Crypt Heist on Tari Ootle & Sapient**
 >
-> For this month’s "Spooky Secrets" contest, I built **Grave Robber** — a playable 2D retro catacomb platformer where you explore haunted tombs, solve occult riddles, and plunder stealth XTR bounties.
+> For this month’s "Spooky Secrets" contest, I built **Grave Robber** — a playable 2D retro catacomb platformer where you explore haunted tombs, solve occult riddles, and plunder stealth TARI bounties.
 >
 > On transparent chains, riddle bounties get stolen by mempool bots. On Tari, the bounty is delivered directly to your Sapient stealth address with zero linkability.
 >

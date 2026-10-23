@@ -168,7 +168,7 @@ export function App() {
               </h2>
               {viewMode !== 'game' && (
                 <p className="text-xs md:text-sm text-stone-400 leading-relaxed font-mono">
-                  Explore the catacombs, decipher ancient riddles, and plunder stealth XTR bounties.
+                  Explore the catacombs, decipher ancient riddles, and plunder stealth TARI bounties.
                   Every solution is proven cryptographically client-side and delivered to your private
                   stealth address without mempool front-running.
                 </p>
@@ -283,7 +283,7 @@ export function App() {
               Bury Your Own Secret
             </h4>
             <p className="text-xs text-stone-400 font-mono leading-relaxed">
-              Deposit testnet XTR, carve an ominous riddle, and create a permanent on-chain tomb for
+              Deposit testnet TARI, carve an ominous riddle, and create a permanent on-chain tomb for
               other adventurers to loot.
             </p>
           </div>

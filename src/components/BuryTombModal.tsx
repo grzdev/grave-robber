@@ -38,7 +38,7 @@ export const BuryTombModal: React.FC<BuryTombModalProps> = ({
     }
 
     if (bountyXTR <= 0) {
-      setError('Bounty must be at least 1 XTR.');
+      setError('Bounty must be at least 1 TARI.');
       sounds.playError();
       return;
     }
@@ -103,7 +103,7 @@ export const BuryTombModal: React.FC<BuryTombModalProps> = ({
                 Dig & Inscribe a Secret Tomb
               </h3>
               <p className="text-[11px] text-stone-400 font-mono">
-                Lock Tari XTR with a confidential hash riddle
+                Lock Tari (TARI) with a confidential hash riddle
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export const BuryTombModal: React.FC<BuryTombModalProps> = ({
 
             <div>
               <label className="block text-xs font-mono text-stone-300 mb-1">
-                Bounty Amount (XTR)
+                Bounty Amount (TARI)
               </label>
               <input
                 type="number"
